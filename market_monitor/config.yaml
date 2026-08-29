@@ -1,0 +1,94 @@
+# 全球金融市场监控系统 —— 默认配置（§7 非功能需求：配置外置）
+# 凭证禁止硬编码：tushare token 优先读环境变量 TUSHARE_TOKEN。
+
+# 全球大盘标的池（§2.1，可配置；source 用于指定数据源）
+symbols:
+  indices_a:      # A股指数
+    - { symbol: "sh000001", name: "上证指数",   source: "tushare" }
+    - { symbol: "sz399006", name: "创业板指",   source: "tushare" }
+    - { symbol: "sh000300", name: "沪深300",    source: "tushare" }
+    - { symbol: "sh000688", name: "科创50",     source: "tushare" }
+  indices_us:     # 美股指数
+    - { symbol: "^GSPC",     name: "标普500",   source: "yfinance" }
+    - { symbol: "^IXIC",     name: "纳斯达克",  source: "yfinance" }
+    - { symbol: "^DJI",      name: "道琼斯",    source: "yfinance" }
+  indices_hk:     # 港股指数
+    - { symbol: "^HSI",      name: "恒生指数",  source: "yfinance" }
+    - { symbol: "^HSCE",     name: "恒生国企",  source: "yfinance" }
+  futures:        # 主要期货（国际）
+    - { symbol: "GC=F",      name: "黄金",      source: "yfinance" }
+    - { symbol: "SI=F",      name: "白银",      source: "yfinance" }
+    - { symbol: "CL=F",      name: "原油",      source: "yfinance" }
+    - { symbol: "NG=F",      name: "天然气",    source: "yfinance" }
+    - { symbol: "HG=F",      name: "铜",        source: "yfinance" }
+  fx:             # 主要外汇
+    - { symbol: "DX-Y.NYB",  name: "美元指数",  source: "yfinance" }
+    - { symbol: "EURUSD=X",  name: "欧元/美元", source: "yfinance" }
+    - { symbol: "USDJPY=X",  name: "美元/日元", source: "yfinance" }
+    - { symbol: "USDCNH=X",  name: "美元/离岸人民币", source: "yfinance" }
+  crypto:         # 数字货币
+    - { symbol: "BTC-USD",   name: "比特币",    source: "yfinance" }
+    - { symbol: "ETH-USD",   name: "以太坊",    source: "yfinance" }
+
+# 交易成本模型（§5.9）
+cost:
+  commission_rate: 0.00025   # 佣金 万2.5
+  stamp_tax_rate: 0.0005     # 印花税 0.05%（仅卖出）
+  slippage_bp: 10.0          # 滑点 10bp
+  min_rr: 1.5                # 盈亏比下限
+
+# 状态机阈值（§5.2）
+regime:
+  adx_trend: 25.0
+  adx_range: 20.0
+  bw_trend_pct: 0.60
+  bw_squeeze_pct: 0.20
+  bw_range_pct: 0.50
+  confirm_bars: 2
+
+# 指标参数（§5.1）
+indicators:
+  boll_n: 20
+  boll_k: 2.0
+  bw_window: 250
+  bw_min_periods: 60
+  atr_n: 14
+  adx_n: 14
+  rsi_n: 14
+  rsi_oversold: 30.0
+  rsi_overbought: 70.0
+  macd_fast: 12
+  macd_slow: 26
+  macd_signal: 9
+  kdj_n: 9
+  hv_window: 20
+  hv_periods: 252
+  volume_surge: 1.5
+
+# 数据源与缓存（§4.2 / §5.2 数据缓存）
+data:
+  source: auto            # auto|tushare|yfinance|akshare|synthetic
+  tushare_token: "f68495740408ec4f453b5414ec389016a91dbf931bb3702178372658"  # 或用环境变量 TUSHARE_TOKEN
+  tushare_endpoint: "https://t.xiaodefa.top/"   # 第三方代理 __http_url（pro._DataApi__http_url）
+  proxy: "127.0.0.1:10808"
+  cache_dir: data_cache
+  start: ""               # YYYYMMDD，留空则默认回看 300 交易日
+  trade_cal_end: ""
+
+# 报告输出（§6）
+report:
+  out_dir: reports
+
+# 飞书通知（P2 / F5.4–F5.5）
+notify:
+  feishu_webhook: ""        # 群机器人 webhook（推送）
+  feishu_app_id: ""         # 开放平台 app_id（归档）
+  feishu_app_secret: ""     # 开放平台 app_secret（归档）
+  push_enabled: false
+
+# 调度（P2 / F5.3）
+schedule:
+  enabled: false
+  daily_time: "15:40"       # 日报触发（北京时间；程序内按交易日历门控）
+  weekly_time: "09:30"      # 周报触发（北京时间周六上午）
+  weekly_days: "SAT"

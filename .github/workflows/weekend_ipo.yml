@@ -1,0 +1,40 @@
+# 周末（北京时间 09:00）→ IPO 估值预判分析 + 邮件
+# cron 为 UTC：0 1 * * 0,6 = 北京 09:00（周日/周六）
+name: Market Monitor Weekend IPO
+
+on:
+  schedule:
+    - cron: '0 1 * * 0,6'
+  workflow_dispatch:
+
+jobs:
+  weekend-ipo:
+    name: IPO 分析 报告+邮件
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ hashFiles('requirements.txt') }}
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run IPO analysis and send email
+        env:
+          TUSHARE_TOKEN: ${{ secrets.TUSHARE_TOKEN }}
+          SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_FROM: ${{ secrets.SMTP_FROM }}
+          SMTP_TO: ${{ secrets.SMTP_TO }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+        run: python scheduled_reports.py --task ipo

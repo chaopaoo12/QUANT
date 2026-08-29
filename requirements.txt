@@ -1,0 +1,13 @@
+# 核心（必需）
+pandas>=2.0
+numpy>=1.24
+PyYAML>=6.0
+requests>=2.28
+
+# 数据源（tushare 主源 A股/板块/财报/IPO；yfinance 海外；akshare 兜底）
+tushare>=1.4
+yfinance>=0.2.40
+akshare>=1.14
+
+# 缓存（parquet 落盘；缺失时自动回退 CSV）
+pyarrow>=14.0
