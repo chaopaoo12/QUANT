@@ -31,6 +31,26 @@ symbols:
     - { symbol: "BABA",      name: "阿里巴巴",  source: "yfinance" }
     - { symbol: "PDD",       name: "拼多多",    source: "yfinance" }
     - { symbol: "0700.HK",   name: "腾讯",      source: "yfinance" }
+    # 补充知名科技公司
+    - { symbol: "AMD",       name: "超威半导体", source: "yfinance" }
+    - { symbol: "AVGO",      name: "博通",      source: "yfinance" }
+    - { symbol: "QCOM",      name: "高通",      source: "yfinance" }
+    - { symbol: "NFLX",      name: "奈飞",      source: "yfinance" }
+    - { symbol: "ORCL",      name: "甲骨文",    source: "yfinance" }
+    - { symbol: "CRM",       name: "赛富时",    source: "yfinance" }
+    - { symbol: "ADBE",      name: "Adobe",     source: "yfinance" }
+    - { symbol: "IBM",       name: "IBM",       source: "yfinance" }
+    - { symbol: "CSCO",      name: "思科",      source: "yfinance" }
+    - { symbol: "TSM",       name: "台积电",    source: "yfinance" }
+    - { symbol: "ASML",      name: "阿斯麦",    source: "yfinance" }
+    - { symbol: "TXN",       name: "德州仪器",  source: "yfinance" }
+    - { symbol: "MU",        name: "美光",      source: "yfinance" }
+    - { symbol: "UBER",      name: "优步",      source: "yfinance" }
+    - { symbol: "PYPL",      name: "PayPal",    source: "yfinance" }
+    # SpaceX 已上市（SPCX）；RKLB/ARKX 作太空板块参照
+    - { symbol: "SPCX",      name: "SpaceX",    source: "yfinance" }
+    - { symbol: "RKLB",      name: "火箭实验室", source: "yfinance" }
+    - { symbol: "ARKX",      name: "太空探索ETF", source: "yfinance" }
   futures:        # 大宗商品期货（国际）
     - { symbol: "GC=F",      name: "纽约黄金",  source: "yfinance" }
     - { symbol: "XAU=F",     name: "伦敦金",    source: "yfinance" }
