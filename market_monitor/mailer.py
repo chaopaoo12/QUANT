@@ -55,7 +55,8 @@ def markdown_to_html(md: str) -> str:
         elif line.startswith(">"):
             html.append(f"<blockquote style='border-left:3px solid #ccc;padding-left:8px;color:#666'>{_escape_html(line.lstrip('>').strip())}</blockquote>")
         elif re.match(r"^\s*[-*] ", line):
-            html.append(f"<li>{_escape_html(re.sub(r'^\s*[-*] ', '', line))}</li>")
+            item = _escape_html(re.sub(r"^\s*[-*] ", "", line))
+            html.append(f"<li>{item}</li>")
         elif line.strip() == "":
             html.append("<br/>")
         else:
