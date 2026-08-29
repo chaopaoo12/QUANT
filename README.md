@@ -99,12 +99,19 @@ skills/market-monitor/       agent skill（操作/扩展本包的说明）
 
 ## GitHub Actions 定时任务 + 邮件
 
-推送到 GitHub 后，工作流自动按计划执行并邮件发送报告（每个报告单独一封）：
+推送到 GitHub 后，工作流自动按计划执行并邮件发送报告（**每个报告/分类单独一封**）：
 
-| 工作流 | 触发（北京时间） | 内容 |
+| 工作流 | 触发（北京时间） | 内容（邮件） |
 |---|---|---|
-| `.github/workflows/daily_report.yml` | 每天 **08:00 / 20:00** | 大盘日报 + 板块日报（各一封）+ 龙头板块财报跟进（**进攻榜当日有新披露才发**） |
-| `.github/workflows/weekend_ipo.yml` | 周末 **09:00** | IPO 估值预判 |
+| `.github/workflows/daily_report.yml` | 每天 **08:00 / 20:00** | 大盘分类日报，各一封：**大盘（指数）/ 海外知名企业 / 数字货币 / 大宗商品期货 / 汇率** |
+| `.github/workflows/sector_financial_report.yml` | 每天 **18:00** | **板块日报** + **财报分析**（各一封）+ **龙头板块财报跟进**（进攻榜当日有新披露才发） |
+| `.github/workflows/weekend_ipo.yml` | 周末 **09:00** | **IPO 估值预判** |
+
+标的池（config.yaml `symbols`，参考 Financial_Market_Report 补充）：
+- **海外知名企业**：AAPL/TSLA/NVDA/AMZN/INTC/MSFT/GOOGL/META + BIDU/BABA/PDD/0700.HK
+- **数字货币**：BTC/ETH/BNB/SOL/XRP/DOGE/TRX
+- **大宗商品期货**：国际（黄金/伦敦金/白银/原油/天然气/铜）+ 国内主力（动力煤/焦煤/铁矿石/沪铜/棕榈油/白糖/棉花/生猪，akshare）
+- **汇率**：美元指数/人民币/欧元/日元/英镑/港币/澳元/加元
 
 **需要在 GitHub 仓库 Settings → Secrets and variables → Actions 配置以下 Secrets：**
 
@@ -119,10 +126,11 @@ skills/market-monitor/       agent skill（操作/扩展本包的说明）
 
 **本地调试**（不配置 SMTP 环境变量时只生成报告不发邮件）：
 ```bash
+python scheduled_reports.py --task daily --end 20260829
+python scheduled_reports.py --task sector-financial --sector-boards 20 --fin-universe 30
 python scheduled_reports.py --task ipo --end 20260829
-python scheduled_reports.py --task daily --sector-boards 20
 ```
-> 注：`--task daily` 的板块龙头识别需拉取成份股行情，耗时约 10–20 分钟（GitHub Actions 免费额度按分钟计费，可调小 `--sector-boards`）。海外行情在 Actions 上若 yfinance 被限流会自动回退 akshare（美股/港股/期货），外汇/加密货币无备用源会被跳过。
+> 注：`--task sector-financial` 的板块龙头识别需拉取成份股行情，耗时约 10–20 分钟（可调小 `--sector-boards`）。海外行情在 Actions 上若 yfinance 被限流会自动回退 akshare（美股/港股指数、美股个股、外盘/国内期货可覆盖）；外汇/加密货币无备用源，仅当 yfinance 可用时有数据。
 
 ## 关键设计决策
 

@@ -41,18 +41,21 @@ def _num(x, nd=2) -> str:
     return f"{x:.{nd}f}"
 
 
-def render_daily_report(results: List[dict], target_date: str) -> str:
-    """大盘日报。results 元素见 cli._build_result。"""
+def render_daily_report(results: List[dict], target_date: str, title: str = "大盘日报") -> str:
+    """大盘日报。results 元素见 cli._build_result；title 用于分类报告（各分类单独出邮件）。"""
     date_str = f"{target_date[:4]}-{target_date[4:6]}-{target_date[6:]}"
 
-    lines = [f"# 大盘日报 {date_str}", ""]
+    lines = [f"# {title} {date_str}", ""]
 
     lines.append("## 市场状态与波动总览")
     lines.append(_md_table(
-        ["标的", "代码", "数据源", "asof_date", "日线状态", "周线状态", "波动状态", "收盘"],
+        ["标的", "代码", "数据源", "asof_date", "日线状态", "周线状态", "波动状态", "收盘",
+         "距上轨", "距中轨", "距下轨"],
         [[r["name"], r["symbol"], r["source"], r.get("asof_date") or "无数据",
           _label(r.get("daily_state")), _label(r.get("weekly_state")),
-          r.get("vol_state") or "—", _num(r.get("close"))] for r in results],
+          r.get("vol_state") or "—", _num(r.get("close")),
+          _pct(r.get("boll_pos_upper")), _pct(r.get("boll_pos_mid")),
+          _pct(r.get("boll_pos_lower"))] for r in results],
     ))
     lines.append("")
 
@@ -267,10 +270,12 @@ def render_weekly_report(results: List[dict], target_date: str) -> str:
 
     lines.append("## 周线趋势全景")
     lines.append(_md_table(
-        ["标的", "代码", "asof_date", "周线状态", "周涨跌", "带宽(本周)", "带宽(上周)", "带宽变化"],
+        ["标的", "代码", "asof_date", "周线状态", "周涨跌", "带宽(本周)", "带宽(上周)", "带宽变化",
+         "距上轨", "距中轨", "距下轨"],
         [[r["name"], r["symbol"], r.get("asof_date") or "无数据", _label(r.get("weekly_state")),
           _pct(r.get("week_change")), _num(r.get("bw_now")), _num(r.get("bw_prev")),
-          _pct(r.get("bw_change"))] for r in results],
+          _pct(r.get("bw_change")), _pct(r.get("boll_pos_upper")), _pct(r.get("boll_pos_mid")),
+          _pct(r.get("boll_pos_lower"))] for r in results],
     ))
     lines.append("")
 

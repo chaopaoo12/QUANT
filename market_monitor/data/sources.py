@@ -129,9 +129,10 @@ class YfinanceSource(Source):
 
 
 class AkshareSource(Source):
-    """海外行情 akshare 兜底（yfinance 不可用时）：美股/港股指数（新浪）、外盘期货（英为财情）。
+    """海外/国内行情 akshare 兜底（yfinance 不可用时）。
 
-    覆盖符号见 _MAP；未覆盖（外汇/加密货币，akshare 无稳定历史接口）抛 SourceError 跳过。
+    覆盖：美股/港股指数（新浪）、外盘期货（英为财情）、美股个股（新浪）、国内期货（新浪主力合约）。
+    未覆盖（外汇/加密货币，akshare 无稳定历史接口）抛 SourceError 跳过。
     """
     name = "akshare"
 
@@ -146,12 +147,34 @@ class AkshareSource(Source):
         "CL=F": ("futures", "CL"),
         "NG=F": ("futures", "NG"),
         "HG=F": ("futures", "HG"),
+        "XAU=F": ("futures", "XAU"),
+        # 海外知名企业（美股，新浪）
+        "AAPL": ("us_stock", "AAPL"),
+        "TSLA": ("us_stock", "TSLA"),
+        "NVDA": ("us_stock", "NVDA"),
+        "AMZN": ("us_stock", "AMZN"),
+        "INTC": ("us_stock", "INTC"),
+        "MSFT": ("us_stock", "MSFT"),
+        "GOOGL": ("us_stock", "GOOGL"),
+        "META": ("us_stock", "META"),
+        "BIDU": ("us_stock", "BIDU"),
+        "BABA": ("us_stock", "BABA"),
+        "PDD": ("us_stock", "PDD"),
+        # 国内期货（新浪主力合约）
+        "ZC0": ("futures_cn", "ZC0"),
+        "JM0": ("futures_cn", "JM0"),
+        "I0": ("futures_cn", "I0"),
+        "CU0": ("futures_cn", "CU0"),
+        "P0": ("futures_cn", "P0"),
+        "SR0": ("futures_cn", "SR0"),
+        "CF0": ("futures_cn", "CF0"),
+        "LH0": ("futures_cn", "LH0"),
     }
 
     def fetch_daily(self, symbol: str, start: str, end: str) -> pd.DataFrame:
         kind, code = self._MAP.get(symbol, (None, None))
         if kind is None:
-            raise SourceError(f"akshare 暂不支持的海外标的（无历史接口）：{symbol}")
+            raise SourceError(f"akshare 暂不支持的标的（无历史接口）：{symbol}")
         try:
             import akshare as ak  # noqa: PLC0415
         except ImportError as e:
@@ -162,7 +185,11 @@ class AkshareSource(Source):
                 df = ak.index_us_stock_sina(symbol=code)
             elif kind == "index_hk":
                 df = ak.stock_hk_index_daily_sina(symbol=code)
-            else:  # futures
+            elif kind == "us_stock":
+                df = ak.stock_us_daily(symbol=code, adjust="qfq")
+            elif kind == "futures_cn":
+                df = ak.futures_main_sina(symbol=code, start_date=start, end_date=end)
+            else:  # futures（英为财情）
                 df = ak.futures_foreign_hist(symbol=code)
         except Exception as e:  # noqa: BLE001 —— 网页接口波动视为源失败
             raise SourceError(f"akshare {kind}:{code} 获取失败：{e}") from e
@@ -172,8 +199,8 @@ class AkshareSource(Source):
         df = df.copy()
         df.columns = [str(c).strip().lower() for c in df.columns]
         if "日期" in df.columns:
-            df = df.rename(columns={"日期": "date", "开盘": "open", "最高": "high",
-                                    "最低": "low", "收盘": "close", "成交量": "volume"})
+            df = df.rename(columns={"日期": "date", "开盘价": "open", "最高价": "high",
+                                    "最低价": "low", "收盘价": "close", "成交量": "volume"})
         if "date" not in df.columns:
             raise SourceError(f"akshare {symbol} 缺少 date 列：{list(df.columns)}")
         df = df.set_index(pd.to_datetime(df["date"]))

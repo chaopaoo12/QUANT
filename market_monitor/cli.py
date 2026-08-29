@@ -46,6 +46,12 @@ def _build_result(symbol: str, name: str, source: str, df, config: Config) -> di
         if not _isna(bw_prev) and bw_prev != 0:
             bw_change = float(last["bw"]) / bw_prev - 1.0
 
+    # 价格距 BOLL 上/中/下轨的距离（相对%，正=在轨上方，负=在轨下方）
+    def _boll_pos(level):
+        if _isna(level) or level == 0:
+            return None
+        return close / float(level) - 1.0
+
     return {
         "symbol": symbol,
         "name": name,
@@ -55,6 +61,9 @@ def _build_result(symbol: str, name: str, source: str, df, config: Config) -> di
         "weekly_state": last.get("weekly_state"),
         "vol_state": volatility_state(last.get("bw_pct")),
         "close": close,
+        "boll_pos_upper": _boll_pos(last.get("boll_upper")),
+        "boll_pos_mid": _boll_pos(last.get("boll_mid")),
+        "boll_pos_lower": _boll_pos(last.get("boll_lower")),
         "signals_today": signals_today,
         "signals_week": signals_week,
         "alerts": detect_alerts(enriched),
