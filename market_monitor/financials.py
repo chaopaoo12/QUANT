@@ -142,15 +142,32 @@ def detect_disclosures(config: Config, date: str, source: str,
     return found
 
 
+def _stock_name_map(config: Config, source: str, codes: List[str]) -> Dict[str, str]:
+    """ts_code -> 名称：tushare 一次 stock_basic 拉取；synthetic 用代码本身。"""
+    if source == "synthetic":
+        return {c: c for c in codes}
+    try:
+        pro = _ts_client(config)
+        sb = pro.stock_basic(exchange="", list_status="L", fields="ts_code,name")
+        if sb is None or sb.empty:
+            return {}
+        return dict(zip(sb["ts_code"], sb["name"]))
+    except Exception as e:  # noqa: BLE001
+        log.warning("stock_basic 名称映射获取失败：%s", e)
+        return {}
+
+
 def sector_followup(members: List[str], config: Config, source: str, end: str,
                     start: str = "") -> dict:
     """龙头板块财报跟进（F3.2）：新披露成员景气汇总 → 主线强化/退潮预警。"""
     disc = detect_disclosures(config, end, source, members)
+    name_map = _stock_name_map(config, source, [d["code"] for d in disc])
     rows = []
     for d in disc:
         f = fetch_fundamental(config, d["code"], source, start, end)
         if not f:
             continue
+        f["name"] = name_map.get(d["code"], d.get("name", d["code"]))
         f["kind"] = d["kind"]
         rows.append(f)
     if not rows:
@@ -186,10 +203,12 @@ def market_scan(config: Config, source: str, end: str, start: str = "",
             log.warning("stock_basic 获取失败：%s", e)
             codes = []
     out = []
+    name_map = _stock_name_map(config, source, codes)
     for c in codes:
         f = fetch_fundamental(config, c, source, start, end)
         if not f:
             continue
+        f["name"] = name_map.get(c, c)
         f["quadrant"] = quadrant(f.get("netprofit_yoy"), f.get("pe_pct"))
         out.append(f)
     return out

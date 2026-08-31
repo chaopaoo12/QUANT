@@ -104,8 +104,10 @@ def run(config: Config, end: str, report_type: str, source_override: Optional[st
             except Exception as e:  # noqa: BLE001 —— 单标的失败不中断（F5.6）
                 log.warning("[%s] 数据获取失败：%s", symbol, e)
                 continue
-            if df is None or len(df) < 60:
-                log.warning("[%s] 数据不足（<60 根），跳过", symbol)
+            # 阈值 20 根：BOLL(20)/ADX(14)/RSI(14)/ATR(14) 热身够用；
+            # 次新股（如 SpaceX SPCX）历史不足 60 根也纳入，长窗口指标缺失自动显示"—"
+            if df is None or len(df) < 20:
+                log.warning("[%s] 数据不足（<20 根），跳过", symbol)
                 continue
             try:
                 results.append(_build_result(symbol, name, src, df, config))

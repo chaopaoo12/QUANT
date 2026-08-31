@@ -49,6 +49,9 @@ class SectorAnalysis:
     beta: Optional[float]
     vol_ratio: Optional[float]
     mf_proxy: Optional[float]
+    boll_pos_upper: Optional[float] = None
+    boll_pos_mid: Optional[float] = None
+    boll_pos_lower: Optional[float] = None
     trend_score: float = 0.0
     rs_score: float = 0.0
     mf_score: float = 0.0
@@ -64,6 +67,8 @@ class SectorAnalysis:
             "weekly_state": self.weekly_state, "rs_20": self.rs_20, "rs_60": self.rs_60,
             "corr": self.corr, "beta": self.beta, "vol_ratio": self.vol_ratio,
             "mf_proxy": self.mf_proxy,
+            "boll_pos_upper": self.boll_pos_upper, "boll_pos_mid": self.boll_pos_mid,
+            "boll_pos_lower": self.boll_pos_lower,
             "offensive_score": self.offensive_score, "defensive_score": self.defensive_score,
             "signals": self.signals, "leaders": [l.to_dict() for l in self.leaders],
         }
@@ -126,9 +131,22 @@ def analyze_sector(sector: Sector, bench_df: pd.DataFrame, config: Config,
     mf_proxy = (np.sign(ret5) * min(abs(vol_ratio or 0.0), 3.0)) if ret5 is not None else None
 
     signals = [s.to_dict() for s in generate_signals(en, config.regime, config.indicators, config.cost)]
+
+    # 价格距板块指数 BOLL 上/中/下轨的距离（相对%）
+    last = en.iloc[-1]
+    close = float(last["close"])
+
+    def _boll_pos(level):
+        if pd.isna(level) or level == 0:
+            return None
+        return close / float(level) - 1.0
+
     return SectorAnalysis(
         code=sector.code, name=sector.name, state=state, weekly_state=weekly,
         rs_20=rs_20, rs_60=rs_60, corr=corr, beta=beta, vol_ratio=vol_ratio, mf_proxy=mf_proxy,
+        boll_pos_upper=_boll_pos(last.get("boll_upper")),
+        boll_pos_mid=_boll_pos(last.get("boll_mid")),
+        boll_pos_lower=_boll_pos(last.get("boll_lower")),
         signals=signals,
     )
 

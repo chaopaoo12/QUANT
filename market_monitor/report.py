@@ -117,16 +117,18 @@ def render_sector_daily(result: dict, top_n: int = 5) -> str:
 
     lines.append(f"## 进攻（主线）Top{top_n}")
     rows = [[a.name, _label(a.state), _pct(a.rs_20), _num(a.corr), _num(a.vol_ratio),
+             _pct(a.boll_pos_upper), _pct(a.boll_pos_mid), _pct(a.boll_pos_lower),
              _num(a.offensive_score), _leader_cell(a.leaders)] for a in result["offensive"]]
-    lines.append(_md_table(["板块", "日线状态", "RS20", "相关性", "量比", "进攻分", "龙头"],
-                           rows) if rows else "_无数据。_")
+    lines.append(_md_table(["板块", "日线状态", "RS20", "相关性", "量比", "距上轨", "距中轨", "距下轨",
+                            "进攻分", "龙头"], rows) if rows else "_无数据。_")
     lines.append("")
 
     lines.append(f"## 防守 Top{top_n}")
     rows = [[a.name, _label(a.state), _pct(a.rs_20), _num(a.beta), _num(a.mf_proxy),
+             _pct(a.boll_pos_upper), _pct(a.boll_pos_mid), _pct(a.boll_pos_lower),
              _num(a.defensive_score), _leader_cell(a.leaders)] for a in result["defensive"]]
-    lines.append(_md_table(["板块", "日线状态", "RS20", "Beta", "资金流代理", "防守分", "龙头"],
-                           rows) if rows else "_无数据。_")
+    lines.append(_md_table(["板块", "日线状态", "RS20", "Beta", "资金流代理", "距上轨", "距中轨", "距下轨",
+                            "防守分", "龙头"], rows) if rows else "_无数据。_")
     lines.append("")
 
     lines.append("## 板块信号（板块指数择时）")
@@ -163,9 +165,10 @@ def render_leader_followup(result: dict, target_date: str) -> str:
         rows = b.get("rows", [])
         if rows:
             lines.append(_md_table(
-                ["代码", "类型", "净利同比", "营收同比", "ROE"],
-                [[r["code"], r.get("kind", ""), _pct(r.get("netprofit_yoy")),
-                  _pct(r.get("or_yoy")), _pct(r.get("roe"))] for r in rows],
+                ["代码", "名称", "类型", "净利同比", "营收同比", "ROE"],
+                [[r["code"], r.get("name", r["code"]), r.get("kind", ""),
+                  _pct(r.get("netprofit_yoy")), _pct(r.get("or_yoy")), _pct(r.get("roe"))]
+                 for r in rows],
             ))
         lines.append("")
     lines.append("> 免责声明：本报告仅供个人研究参考，不构成投资建议。")
@@ -203,10 +206,11 @@ def render_financial_report(result: dict) -> str:
     scan = result.get("scan", [])
     if scan:
         lines.append(_md_table(
-            ["代码", "期间", "净利同比", "营收同比", "ROE", "PE-TTM", "PE分位", "象限"],
-            [[r["code"], r.get("period", ""), _pct(r.get("netprofit_yoy")),
-              _pct(r.get("or_yoy")), _pct(r.get("roe")), _num(r.get("pe_ttm")),
-              _pct(r.get("pe_pct")), r.get("quadrant", "—")] for r in scan],
+            ["代码", "名称", "期间", "净利同比", "营收同比", "ROE", "PE-TTM", "PE分位", "象限"],
+            [[r["code"], r.get("name", r["code"]), r.get("period", ""),
+              _pct(r.get("netprofit_yoy")), _pct(r.get("or_yoy")), _pct(r.get("roe")),
+              _num(r.get("pe_ttm")), _pct(r.get("pe_pct")), r.get("quadrant", "—")]
+             for r in scan],
         ))
     else:
         lines.append("_无数据。_")
